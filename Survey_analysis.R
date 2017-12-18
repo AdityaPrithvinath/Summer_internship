@@ -1,5 +1,6 @@
 getwd()
 file_path<-file.choose()
+#install.packages("data.table")
 require(data.table)
 survey_data<-fread(file_path)
 str(survey_data)
@@ -94,11 +95,11 @@ clus_survey_completeDist<-hclust(dist(complete[,c("Education","Health Care","Env
 
 dend1<-as.dendrogram(clus_survey)
 dend2<-as.dendrogram(clus_survey_completeDist)
-
+#install.packages("sos")
 require("sos")
 findFn("tanglegram")
 
-#install.packages("dendextend")
+install.packages("dendextend")
 require(dendextend)
 
 tanglegram(dend1,dend2)
@@ -112,7 +113,7 @@ tanglegram(dend1, dend2,
            main = paste("entanglement =", round(entanglement(dend_list), 2))
 )
 
-findFn("fviz_nbclust")
+#findFn("fviz_nbclust")
 install.packages("factoextra")
 require(factoextra)
 fviz_nbclust(complete,FUN=hcut, method="wss")
@@ -139,6 +140,7 @@ complete[,.(Challenge=mean(Socially_Drv_challenge),Checkout_Charity=mean(Checkou
 complete[,.(Facebook=sum(Facebook),Instagram=sum(Instagram),Twitter=sum(Twitter),Snapchat=sum(Snapchat),Pinterest=sum(Pinterest)),by=.(Cluster)]
 
 #findFn("cast")
+install.packages("reshape")
 require(reshape)
 Cluster_1<-complete[Cluster==1,]
 Cluster_2<-complete[Cluster==2,]
@@ -149,7 +151,11 @@ cast(Cluster_2, Age~Gender+City,mean,value="Household_Income" )
 cast(Cluster_3, Age~Gender+City,mean,value="Household_Income" )
 cast(Cluster_4, Age~Gender+City,mean,value="Household_Income" )
 
-
+anova_1<- aov(complete$Donate ~ complete$Age,data = complete)
+layout(matrix(c(1,2,3,4),2,2)) # optional layout 
+plot(anova_1) # diagnostic plots
+summary(anova_1)
+TukeyHSD(anova_1)
 chi_Age_DMode<-table(complete$Age,complete$Donation_Mode)
 chisq_Age_DMode<-chisq.test(chi_Age_DMode)
 remove(chisq_Age_DMode)
@@ -172,3 +178,23 @@ table(survey_data$Motivating_fct_3)
 table(survey_data$Motivating_fct_4)
 table(survey_data$Motivating_fct_5)
 table(survey_data$Motivating_fct_6)
+
+
+install.packages("wordcloud")
+library(tm)
+library(SnowballC)
+library(wordcloud)
+Quest <- read.csv('C:/Users/prithvinatha/Documents/Outback_Survey/Modified_Survey_Doc_1.csv', stringsAsFactors = FALSE)
+
+qCorpus <- Corpus(VectorSource(Quest$Open.Ended.Response))
+
+qCorpus <- tm_map(qCorpus, PlainTextDocument)
+qCorpus <- tm_map(qCorpus, removePunctuation)
+qCorpus <- tm_map(qCorpus, removeWords, stopwords('english'))
+
+qCorpus <- tm_map(qCorpus, stemDocument)
+
+qCorpus <- Corpus(VectorSource(qCorpus))
+wordcloud(qCorpus, max.words = 50, random.order = FALSE)
+
+qCorpus <- tm_map(qCorpus, removeWords, c('the', 'this', stopwords('english')))
